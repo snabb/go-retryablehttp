@@ -368,10 +368,6 @@ func PassthroughErrorHandler(resp *http.Response, err error, _ int) (*http.Respo
 
 // Do wraps calling an HTTP method with retries.
 func (c *Client) Do(req *Request) (*http.Response, error) {
-	if c.Logger != nil {
-		c.Logger.Printf("[DEBUG] %s %s", req.Method, req.URL)
-	}
-
 	var resp *http.Response
 	var err error
 
