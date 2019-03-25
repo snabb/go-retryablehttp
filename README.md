@@ -1,11 +1,16 @@
 go-retryablehttp
 ================
 
-[![Build Status](http://img.shields.io/travis/hashicorp/go-retryablehttp.svg?style=flat-square)][travis]
 [![Go Documentation](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][godocs]
 
-[travis]: http://travis-ci.org/hashicorp/go-retryablehttp
-[godocs]: http://godoc.org/github.com/hashicorp/go-retryablehttp
+[godocs]: http://godoc.org/github.com/snabb/go-retryablehttp
+
+This is a fork of http://godoc.org/github.com/hashicorp/go-retryablehttp with
+the following changes:
+- retry with 429 "Too Many Requests" status code
+
+Description
+===========
 
 The `retryablehttp` package provides a familiar HTTP client interface with
 automatic retries and exponential backoff. It is a thin wrapper over the
@@ -22,7 +27,7 @@ The main difference from `net/http` is that requests which take a request body
 (POST/PUT et. al) can have the body provided in a number of ways (some more or
 less efficient) that allow "rewinding" the request body if the initial request
 fails so that the full request can be attempted again. See the
-[godoc](http://godoc.org/github.com/hashicorp/go-retryablehttp) for more
+[godoc](http://godoc.org/github.com/snabb/go-retryablehttp) for more
 details.
 
 Example Use
@@ -43,4 +48,4 @@ usually get from `net/http`. Had the request failed one or more times, the above
 call would block and retry with exponential backoff.
 
 For more usage and examples see the
-[godoc](http://godoc.org/github.com/hashicorp/go-retryablehttp).
+[godoc](http://godoc.org/github.com/snabb/go-retryablehttp).
