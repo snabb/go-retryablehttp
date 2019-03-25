@@ -312,9 +312,16 @@ func DefaultRetryPolicy(ctx context.Context, resp *http.Response, err error) (bo
 }
 
 // DefaultBackoff provides a default callback for Client.Backoff which
+// performs backoff based on "Retry-After" header if found and exponential
+// backoff otherwise.
+func DefaultBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	return RetryAfterBackoffFunc(ExponentialBackoff)(min, max, attemptNum, resp)
+}
+
+// ExponentialBackoff provides a callback for Client.Backoff which
 // will perform exponential backoff based on the attempt number and limited
 // by the provided minimum and maximum durations.
-func DefaultBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+func ExponentialBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
 	mult := math.Pow(2, float64(attemptNum)) * float64(min)
 	sleep := time.Duration(mult)
 	if float64(sleep) != mult || sleep > max {
