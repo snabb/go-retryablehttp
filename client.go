@@ -361,24 +361,24 @@ func LinearJitterBackoff(min, max time.Duration, attemptNum int, resp *http.Resp
 	return time.Duration(jitterMin * int64(attemptNum))
 }
 
-// RetryAfterBackoff provides a callback for Client.Backoff which performs
-// backoff based on "Retry-After" header in HTTP response.
-// Returns zero duration if no such header was found.
-func RetryAfterBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
-	if resp == nil {
-		return 0
+// RetryAfterBackoffFunc returns a callback function for Client.Backoff which
+// performs backoff based on "Retry-After" header in HTTP response. If no
+// such header is found or it can not be parsed, fallback backoff function
+// is used instead.
+func RetryAfterBackoffFunc(fallback Backoff) Backoff {
+	return func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+		if resp != nil {
+			if str := resp.Header.Get("Retry-After"); str != "" {
+				if sleep, err := strconv.Atoi(str); err == nil {
+					return time.Duration(sleep) * time.Second
+				}
+				if t, err := http.ParseTime(str); err == nil {
+					return time.Until(t)
+				}
+			}
+		}
+		return fallback(min, max, attemptNum, resp)
 	}
-	str := resp.Header.Get("Retry-After")
-	if str == "" {
-		return 0
-	}
-	if sleep, err := strconv.Atoi(str); err == nil {
-		return time.Duration(sleep) * time.Second
-	}
-	if t, err := http.ParseTime(str); err == nil {
-		return time.Until(t)
-	}
-	return 0
 }
 
 // PassthroughErrorHandler is an ErrorHandler that directly passes through the
