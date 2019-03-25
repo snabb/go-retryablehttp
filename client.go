@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -314,6 +315,20 @@ func DefaultRetryPolicy(ctx context.Context, resp *http.Response, err error) (bo
 // will perform exponential backoff based on the attempt number and limited
 // by the provided minimum and maximum durations.
 func DefaultBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	if resp != nil {
+		str := resp.Header.Get("Retry-After")
+		if str != "" {
+			sleep, err := strconv.Atoi(str)
+			if err == nil && sleep != 0 {
+				return time.Duration(sleep) * time.Second
+			}
+			t, err := http.ParseTime(str)
+			if err == nil && t.After(time.Now()) {
+				return time.Until(t)
+			}
+		}
+	}
+
 	mult := math.Pow(2, float64(attemptNum)) * float64(min)
 	sleep := time.Duration(mult)
 	if float64(sleep) != mult || sleep > max {
