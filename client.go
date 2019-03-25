@@ -300,9 +300,10 @@ func DefaultRetryPolicy(ctx context.Context, resp *http.Response, err error) (bo
 	}
 	// Check the response code. We retry on 500-range responses to allow
 	// the server time to recover, as 500's are typically not permanent
-	// errors and may relate to outages on the server side. This will catch
-	// invalid response codes as well, like 0 and 999.
-	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != 501) {
+	// errors and may relate to outages on the server side. Also retry if
+	// 429 "Too Many Requests" is received. This will catch invalid
+	// response codes as well, like 0 and 999.
+	if resp.StatusCode == 0 || resp.StatusCode == 429 || (resp.StatusCode >= 500 && resp.StatusCode != 501) {
 		return true, nil
 	}
 
