@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -358,6 +359,26 @@ func LinearJitterBackoff(min, max time.Duration, attemptNum int, resp *http.Resp
 	jitter := rand.Float64() * float64(max-min)
 	jitterMin := int64(jitter) + int64(min)
 	return time.Duration(jitterMin * int64(attemptNum))
+}
+
+// RetryAfterBackoff provides a callback for Client.Backoff which performs
+// backoff based on "Retry-After" header in HTTP response.
+// Returns zero duration if no such header was found.
+func RetryAfterBackoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	if resp == nil {
+		return 0
+	}
+	str := resp.Header.Get("Retry-After")
+	if str == "" {
+		return 0
+	}
+	if sleep, err := strconv.Atoi(str); err == nil {
+		return time.Duration(sleep) * time.Second
+	}
+	if t, err := http.ParseTime(str); err == nil {
+		return time.Until(t)
+	}
+	return 0
 }
 
 // PassthroughErrorHandler is an ErrorHandler that directly passes through the
